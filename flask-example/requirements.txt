@@ -1,0 +1,10 @@
+Flask>=1.1.1
+gunicorn>=19.4.5
+python-dotenv>=0.11.0
+psycopg2>=2.6.2
+Flask-Migrate>=2.5.0
+Flask-SQLAlchemy>=2.1
+flask-script>=2.0.6
+requests>=2.9.1
+beautifulsoup4>=4.4.1
+nltk>=3.2
