@@ -13,13 +13,16 @@ client_secret = 'secret'
 token_url = 'https://login.microsoftonline.com/371acba8-eec3-4163-abe5-606c4b32be3e/oauth2/token'
 
 
+username = "ABC"
+password = "***"
+
 token_data = {"grant_type": "client_credentials",
               "client_id": app_id,
               "client_secret": client_secret,
               "resource": "https://graph.microsoft.com",
               "scope": "https://graph.microsoft.com/.default",
-              "username": "ABC",
-              "password": "****"
+              "username": username,
+              "password": password
               }
 token_r = requests.post(token_url, data=token_data)
 token = token_r.json().get('access_token')
