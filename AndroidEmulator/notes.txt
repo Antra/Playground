@@ -1,0 +1,69 @@
+// Building an Android emulator with Docker:
+// https://dev.to/fastphat/build-a-lightweight-docker-container-for-android-testing-ikh
+
+docker run -it --name android-container ubuntu
+
+export ANDROID_COMPILE_SDK=29
+export ANDROID_BUILD_TOOLS=29.0.3
+export ANDROID_SDK_TOOLS="6200805"
+export ANDROID_HOME=$PWD/android-sdk-linux
+adduser antra
+
+apt-get --quiet update --yes
+apt-get --quiet install --yes openjdk-8-jdk git unzip tar libglu1 libpulse-dev libasound2 lib32stdc++6 lib32z1 libc6  libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxi6  libxtst6 libnss3 wget vim
+
+wget https://services.gradle.org/distributions/gradle-5.4.1-bin.zip -P /tmp && unzip -d /opt/gradle /tmp/gradle-5.4.1-bin.zip
+mkdir /opt/gradlew && /opt/gradle/gradle-5.4.1/bin/gradle wrapper --gradle-version 5.4.1 --distribution-type all -p /opt/gradlew && /opt/gradle/gradle-5.4.1/bin/gradle wrapper -p /opt/gradlew
+chmod +x ./opt/gradlew
+
+
+
+wget --quiet --output-document=android-sdk.zip https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_TOOLS}_latest.zip
+unzip -d android-sdk-linux android-sdk.zip
+
+yes | android-sdk-linux/tools/bin/sdkmanager --sdk_root=${ANDROID_HOME} --licenses
+android-sdk-linux/tools/bin/sdkmanager --sdk_root=${ANDROID_HOME} "platform-tools" "platforms;android-${ANDROID_COMPILE_SDK}" "emulator" "build-tools;${ANDROID_BUILD_TOOLS}" "system-images;android-${ANDROID_COMPILE_SDK};google_apis;x86" >/dev/null
+
+echo "no" | android-sdk-linux/tools/bin/avdmanager --verbose create avd --force --name "test" --device "pixel" --package "system-images;android-${ANDROID_COMPILE_SDK};google_apis;x86" --tag "google_apis" --abi "x86"
+android-sdk-linux/emulator/emulator -list-avds
+
+
+// add to .bashrc (e.g. vim .bashrc)
+export GRADLE_HOME=/opt/gradle/gradle-5.4.1
+export ANDROID_HOME=/android-sdk-linux
+export PATH=$PATH:$GRADLE_HOME/bin:/opt/gradlew:$ANDROID_HOME/emulator:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools
+export LD_LIBRARY_PATH=$ANDROID_HOME/emulator/lib64:$ANDROID_HOME/emulator/lib64/qt/lib
+
+// reflect it
+source ~/.bashrc
+
+
+
+
+// Running the emulator
+function wait_emulator_to_be_ready() {
+  adb devices | grep emulator | cut -f1 | while read line; do adb -s $line emu kill; done
+  emulator -avd test -no-audio -no-boot-anim -no-window -accel on -gpu off -skin 1440x2880 &
+
+boot_completed=false
+  while [ "$boot_completed" == false ]; do
+    status=$(adb wait-for-device shell getprop sys.boot_completed | tr -d '\r')
+    echo "Boot Status: $status"
+
+    if [ "$status" == "1" ]; then
+      boot_completed=true
+    else
+      sleep 1
+    fi
+  done
+}
+
+function disable_animation() {
+  adb shell "settings put global window_animation_scale 0.0"
+  adb shell "settings put global transition_animation_scale 0.0"
+  adb shell "settings put global animator_duration_scale 0.0"
+}
+
+wait_emulator_to_be_ready
+sleep 1
+disable_animation
