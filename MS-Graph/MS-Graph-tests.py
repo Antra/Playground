@@ -2,21 +2,21 @@ import requests
 import json
 import pandas as pd
 #import pyodbc
+import os
 
 
 # Application Id - on the azure app overview page
-app_id = 'b181eb75-ab93-461c-ad82-79039bba7f41'
-client_secret = 'secret'
+app_id = os.getenv('app_id')
+client_secret = os.getenv('client_secret')
+username = os.getenv('username')
+password = os.getenv('password')
 
 
 # Use the redirect URL to create a token url
-token_url = 'https://login.microsoftonline.com/371acba8-eec3-4163-abe5-606c4b32be3e/oauth2/token'
+#token_url = 'https://login.microsoftonline.com/371acba8-eec3-4163-abe5-606c4b32be3e/oauth2/token'
+token_url = 'https://login.microsoftonline.com/common/oauth2/token'
 
-
-username = "ABC"
-password = "***"
-
-token_data = {"grant_type": "client_credentials",
+token_data = {"grant_type": "client_credentials", # authorization_code or client_credentials
               "client_id": app_id,
               "client_secret": client_secret,
               "resource": "https://graph.microsoft.com",
@@ -26,6 +26,8 @@ token_data = {"grant_type": "client_credentials",
               }
 token_r = requests.post(token_url, data=token_data)
 token = token_r.json().get('access_token')
+
+print(token)
 
 
 # And with the Auth path instead
@@ -48,7 +50,7 @@ token_session_state = "25f7b9f8-71eb-4b2a-920c-9d57b016ad78"
 token_url = 'https://login.microsoftonline.com/371acba8-eec3-4163-abe5-606c4b32be3e/oauth2/token'
 
 token_data = {
-    "grant_type": "authorization_code",
+    "grant_type": "authorization_code", # authorization_code or client_credentials
     "client_id": app_id,
     "client_secret": client_secret,
     "code": token_code,
@@ -58,7 +60,7 @@ token_data = {
 token_r = requests.post(token_url, data=token_data)
 token = token_r.json().get('access_token')
 
-token = 'eyJ0eXAiOiJKV1QiLCJub25jZSI6IktYb01VUnNUQ3dTTGhFcE9ObldIRGZYRUVTU0xKVm9LTEpJcVhiZVNmeXMiLCJhbGciOiJSUzI1NiIsIng1dCI6IllNRUxIVDBndmIwbXhvU0RvWWZvbWpxZmpZVSIsImtpZCI6IllNRUxIVDBndmIwbXhvU0RvWWZvbWpxZmpZVSJ9.eyJhdWQiOiJodHRwczovL2dyYXBoLm1pY3Jvc29mdC5jb20iLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zNzFhY2JhOC1lZWMzLTQxNjMtYWJlNS02MDZjNGIzMmJlM2UvIiwiaWF0IjoxNTg1MTY4OTAyLCJuYmYiOjE1ODUxNjg5MDIsImV4cCI6MTU4NTE3MjgwMiwiYWNjdCI6MCwiYWNyIjoiMSIsImFpbyI6IkFUUUF5LzhQQUFBQU5sSC9EWVR5ZnFhMGo1Z1BoT3BHQTc0WWJsSDBRRTRGTzAzaWV2SkVHTkowZmhhTnhvdk1lYVN5RHZUWGM5OGEiLCJhbHRzZWNpZCI6IjE6bGl2ZS5jb206MDAwMzdGRkU5MzAyQ0MyMiIsImFtciI6WyJwd2QiXSwiYXBwX2Rpc3BsYXluYW1lIjoiUHlBc3Npc3RlZEludmVudG9yeSAoUEFJKSIsImFwcGlkIjoiYjE4MWViNzUtYWI5My00NjFjLWFkODItNzkwMzliYmE3ZjQxIiwiYXBwaWRhY3IiOiIxIiwiZW1haWwiOiJ4Ym94QGFudHJhLmRrIiwiZmFtaWx5X25hbWUiOiJEZW1hbnQgdmFuIGRlciBXZWlkZSIsImdpdmVuX25hbWUiOiJBbmRlcnMiLCJpZHAiOiJsaXZlLmNvbSIsImlwYWRkciI6IjIxMi4yMzcuMTM0LjEwMSIsIm5hbWUiOiJBbmRlcnMgRGVtYW50IHZhbiBkZXIgV2VpZGUiLCJvaWQiOiI2ZDMwMzY0NS00NDZkLTQ0MmUtOGUyMS05MjBjYjI3MjJmODIiLCJwbGF0ZiI6IjMiLCJwdWlkIjoiMTAwMzIwMDAzNjcwNUZCOSIsInNjcCI6IkNhbGVuZGFycy5SZWFkLlNoYXJlZCBvZmZsaW5lX2FjY2VzcyBUYXNrcy5SZWFkIFRhc2tzLlJlYWQuU2hhcmVkIFRhc2tzLlJlYWRXcml0ZSBUYXNrcy5SZWFkV3JpdGUuU2hhcmVkIFVzZXIuUmVhZCIsInNpZ25pbl9zdGF0ZSI6WyJrbXNpIl0sInN1YiI6IlJpVF9vNzlBTmZHTF9wN1RpSUhrY2JQX29BV3QyZ25vQk52TEdDZFV4M00iLCJ0aWQiOiIzNzFhY2JhOC1lZWMzLTQxNjMtYWJlNS02MDZjNGIzMmJlM2UiLCJ1bmlxdWVfbmFtZSI6ImxpdmUuY29tI3hib3hAYW50cmEuZGsiLCJ1dGkiOiJmSUdnb1daUXhVR1RQdUU0aG5jQUFBIiwidmVyIjoiMS4wIiwid2lkcyI6WyI2MmU5MDM5NC02OWY1LTQyMzctOTE5MC0wMTIxNzcxNDVlMTAiXSwieG1zX3RjZHQiOjE1NDY3OTg3Njd9.URVmUYgk4_SLrPufElkrD8SWUTYyIMzxtyuGq5emzqZkA5hLJuLCsUCjOiImFR6kR6gboJbOypQXHIEzIAfnDaMliCRvFu4GCUkcBisEtNKU62dnoNs3WC2HRs0N-YQGmrgTSUYXQvtlZ6YIRuGutfcKgPEv8CTEdA7roOoKi8MJxVvZZrQvbaXknznUM4vGUAqHyM47d83lW7L8qRm6ydx_RiF28FNX3mirOtQfI5NesJoZkNKU2Mh6szMO4E53wqn1wHxU16KxuMfXHAnvxO098f-1xdem6wFpmeSrwhXd--cYEIS6RhB3IAHB23aNTyfWx3ZEmmwfShbnJ9pUSw'
+token = 'eyJ0eXAiOiJKV1QiLCJub25jZSI6IjhLYUxHaW1odlE1TVg1ZzZSemw3VzVMSlpnTmZmR0IwZDdNVEZaVl9WYWMiLCJhbGciOiJSUzI1NiIsIng1dCI6IllNRUxIVDBndmIwbXhvU0RvWWZvbWpxZmpZVSIsImtpZCI6IllNRUxIVDBndmIwbXhvU0RvWWZvbWpxZmpZVSJ9.eyJhdWQiOiJodHRwczovL2dyYXBoLm1pY3Jvc29mdC5jb20iLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zNzFhY2JhOC1lZWMzLTQxNjMtYWJlNS02MDZjNGIzMmJlM2UvIiwiaWF0IjoxNTg1NzU3ODQyLCJuYmYiOjE1ODU3NTc4NDIsImV4cCI6MTU4NTc2MTc0MiwiYWlvIjoiNDJkZ1lMRFZ1Sk1UcEhqY2I4ZU8yb3ViYzZkK0FnQT0iLCJhcHBfZGlzcGxheW5hbWUiOiJQeUFzc2lzdGVkSW52ZW50b3J5IChQQUkpIiwiYXBwaWQiOiJiMTgxZWI3NS1hYjkzLTQ2MWMtYWQ4Mi03OTAzOWJiYTdmNDEiLCJhcHBpZGFjciI6IjEiLCJpZHAiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8zNzFhY2JhOC1lZWMzLTQxNjMtYWJlNS02MDZjNGIzMmJlM2UvIiwib2lkIjoiNGQzYmJhNDYtN2I5Yy00OWY3LThkZjMtYjAwZWRiMTZlOWY0Iiwicm9sZXMiOlsiVXNlci5SZWFkLkFsbCJdLCJzdWIiOiI0ZDNiYmE0Ni03YjljLTQ5ZjctOGRmMy1iMDBlZGIxNmU5ZjQiLCJ0aWQiOiIzNzFhY2JhOC1lZWMzLTQxNjMtYWJlNS02MDZjNGIzMmJlM2UiLCJ1dGkiOiJjVVo5bkxzVHprdUxIbHBfOURFS0FBIiwidmVyIjoiMS4wIiwieG1zX3RjZHQiOjE1NDY3OTg3Njd9.UeNhk_7LLLK_qMN1qS9mHzPnHzmCqmitPjd6B3m2kg5G1Oc8n9limCzeLBRIJNFvE4l66u6wFkDWhPAt8b3k-z8UsauBKC-BGEt7HIw_6oF3jcxIzboXAXentUDrzmPc1B4uhnlECarH8lslFSgksUD2FGA95ncOefcV19N4clJs1FWLX_C7tDou_1dKXS5X4pQGv6PmAA4VSb9KXE7jAAn76slkNWMH8WJ8C5WdZlpvYXHDqhHUkLA3xFMf44_6f-bXivz2mi9LSahuEQJNUZOfvmJPVLJBx_Cxhn6-93Wo-YhZS_Ph4VqGaIrmGW_gHCP3Q_SoNzzLhM9osgZjpg'
 
 headers = {
     'Authorization': f'Bearer {token}'
@@ -96,3 +98,4 @@ tasks_url = 'https://graph.microsoft.com/beta/users/6d303645-446d-442e-8e21-920c
 tasks_response_data = json.loads(requests.get(tasks_url, headers=headers).text)
 
 print(tasks_response_data)
+
