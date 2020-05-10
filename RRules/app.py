@@ -109,8 +109,9 @@ def _generate_week(basedate, freeze=None):
                                 datetime.strptime(start_time, '%H').time().replace(tzinfo=timezone.utc))
 
     date_begin = basedate
-    if freeze and max(basedate, freeze) > basedate:
-        date_begin = freeze + timedelta(days=1)
+    if freeze and max(basedate, freeze) > date_begin:
+        while date_begin < freeze:
+            date_begin += timedelta(days=1)
 
     # date_str_begin = str(date_str_begin).replace('-', '')
     # dtstart = date_str_begin + time_str_begin
@@ -121,7 +122,7 @@ def _generate_week(basedate, freeze=None):
     date_until = datetime.combine(week_end + timedelta(days=1),
                                   datetime.strptime('00', '%H').time().replace(tzinfo=timezone.utc))
 
-    until = date_until.strftime(datetime_format)
+    until = date_until.strftime('%Y%m%dT%H%M%SZ')
 
     rule_string = f'RRULE:FREQ=DAILY;UNTIL={until};INTERVAL=2;WKST=MO'
     rule = rrulestr(rule_string, dtstart=date_begin)
@@ -132,29 +133,48 @@ def _generate_week(basedate, freeze=None):
     return(time_slots, new_freeze)
 
 
-datetime_format = '%Y%m%dT%H%M%SZ'
+def debug():
+    start_date = datetime.strptime('2020-05-07', '%Y-%m-%d').date()
+    freeze_date = start_date + timedelta(days=2)
+    time_slots, new_freeze = _generate_week(start_date)
 
-start_date = datetime.strptime('2020-05-12', '%Y-%m-%d').date()
-freeze_date = start_date + timedelta(days=2)
-time_slots, new_freeze = _generate_week(start_date)
+    start_date = datetime.strptime('2020-05-11', '%Y-%m-%d').date()
+    time_slots2, new_freeze2 = _generate_week(start_date, new_freeze)
 
-start_date = datetime.strptime('2020-05-18', '%Y-%m-%d').date()
-time_slots2, new_freeze2 = _generate_week(start_date, new_freeze)
+    start_date = datetime.strptime('2020-05-18', '%Y-%m-%d').date()
+    time_slots3, new_freeze3 = _generate_week(start_date, new_freeze2)
 
-start_date = datetime.strptime('2020-05-25', '%Y-%m-%d').date()
-time_slots3, new_freeze3 = _generate_week(start_date, new_freeze2)
+    start_date = datetime.strptime('2020-05-25', '%Y-%m-%d').date()
+    time_slots4, new_freeze4 = _generate_week(start_date, new_freeze3)
 
-start_date = datetime.strptime('2020-06-01', '%Y-%m-%d').date()
-time_slots4, new_freeze4 = _generate_week(start_date, new_freeze3)
+    print(time_slots)
+    print(new_freeze)
 
-print(time_slots)
-print(new_freeze)
+    print(time_slots2)
+    print(new_freeze2)
 
-print(time_slots2)
-print(new_freeze2)
+    print(time_slots3)
+    print(new_freeze3)
 
-print(time_slots3)
-print(new_freeze3)
+    print(time_slots4)
+    print(new_freeze4)
 
-print(time_slots4)
-print(new_freeze4)
+
+def generate_events(basedate=None, freeze=None, weeks=3):
+    if not basedate:
+        basedate = datetime.now().date()
+
+    timeslots = []
+    for i in range(weeks):
+        times, freeze = _generate_week(basedate, freeze)
+        basedate = find_week_boundaries(basedate)[1] + timedelta(days=1)
+        timeslots.append(times)
+
+    return timeslots
+
+
+if __name__ == "__main__":
+    # debug()
+    startdate = datetime.strptime('2020-05-07', '%Y-%m-%d').date()
+    for timeslot in generate_events(startdate):
+        print(str(timeslot))
